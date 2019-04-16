@@ -12,6 +12,15 @@ interface Tokens {
   token_type: string;
   user_id: string;
 }
+interface FitbitError {
+  errorType: string;
+  message: string;
+}
+
+interface FitbitErrorResponse {
+  errors: FitbitError[];
+  success: boolean;
+}
 
 const clientID = keys.clientID
 const clientSecret = keys.clientSecret
@@ -67,16 +76,7 @@ const refreshToken = (token: string) => {
   return axios.post('https://api.fitbit.com/oauth2/token', requestBody, configs).then(res => res.data)
 }
 
-interface FitbitError {
-  errorType: string;
-  message: string;
-}
-
-interface FitbitErrorResponse {
-  errors: FitbitError[];
-  success: boolean;
-}
-
+// The error where we will refersh our tokens.
 //[{"errorType":"invalid_grant", "message":"Authorization code expired: [code]."}],
 const errorHandler = (errorResponse: FitbitErrorResponse) => {
   const error = JSON.stringify(errorResponse)
