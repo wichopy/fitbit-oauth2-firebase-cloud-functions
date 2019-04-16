@@ -65,32 +65,41 @@ function getTokens(code: string) {
 /**
  * curl -X POST -i -H "Authorization: Basic MjJESDVSOjU2ZmE5MDE3NTMyYTllYzQ4-urlencoded" -d "grant_type=refresh_token" -d "refresh_token=d0087d512687e5d307c9f2bf20e8d41c56cd7033cc9745e677de49e8cb9eadbf" https://api.fitbit.com/oauth2/token
  */
-const refreshToken = (token: string) => {
-  const requestBody = querystring.stringify({
-    'grant_type': 'refresh_token',
-    'refresh_token': token,
-  })
-  console.log('requestBody', requestBody)
-  console.log('configs', configs)
+// const refreshToken = (token: string) => {
+//   const requestBody = querystring.stringify({
+//     'grant_type': 'refresh_token',
+//     'refresh_token': token,
+//   })
+//   console.log('requestBody', requestBody)
+//   console.log('configs', configs)
 
-  return axios.post('https://api.fitbit.com/oauth2/token', requestBody, configs).then(res => res.data)
+//   return axios.post('https://api.fitbit.com/oauth2/token', requestBody, configs).then(res => res.data)
+// }
+
+const extractErrorMessage = (errorResponse: FitbitErrorResponse): string => {
+  return errorResponse.errors.reduce((errorMessages, currentErr) => {
+    let result = errorMessages;
+    result += (' ' + currentErr.message);
+    return result;
+  }, '')
 }
 
 // The error where we will refersh our tokens.
 //[{"errorType":"invalid_grant", "message":"Authorization code expired: [code]."}],
-const errorHandler = (errorResponse: FitbitErrorResponse) => {
-  const error = JSON.stringify(errorResponse)
-  if (error.includes('Authorization code expired')) {
-    // database.get(refresh_token)
-    // refreshToken(refresh_token)
-  }
-}
+// const errorHandler = (errorResponse: FitbitErrorResponse) => {
+//   const error = JSON.stringify(errorResponse)
+//   if (error.includes('Authorization code expired')) {
+//     // database.get(refresh_token)
+//     // refreshToken(refresh_token)
+//   }
+// }
+
 export const callback = functions.https.onRequest(async (request, response) => {
   const { code } = request.query
   console.log(code, request.query)
   const tokens: Tokens = await getTokens(code).catch(err => {
     console.error(err.response.data)
-    response.send({ message: 'error getting tokens', err: err.response.data })
+    response.send('Server error: ' + extractErrorMessage(err.response.data))
     return
   })
 
